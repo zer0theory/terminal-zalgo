@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""
+Zalgo text generator for terminal use.
+Generates text with combining diacritical marks for that corrupted look.
+"""
+
+import sys
+import random
+import argparse
+
+
+# Combining diacritical marks (Unicode ranges)
+UP_MARKS = [
+    '\u030d', '\u030e', '\u0304', '\u0305', '\u033f', '\u0311',
+    '\u0306', '\u0310', '\u0307', '\u0308', '\u030a', '\u0342',
+    '\u0343', '\u0344', '\u034a', '\u034b', '\u034c', '\u0303',
+    '\u0302', '\u030c', '\u0350', '\u0351', '\u0352', '\u0353',
+    '\u0354', '\u0355', '\u0356', '\u0359', '\u035a',
+]
+
+DOWN_MARKS = [
+    '\u0316', '\u0317', '\u0318', '\u0319', '\u031c', '\u031d',
+    '\u031e', '\u031f', '\u0320', '\u0324', '\u0325', '\u0326',
+    '\u0329', '\u032a', '\u032b', '\u032c', '\u032d', '\u032e',
+    '\u032f', '\u0330', '\u0331', '\u0332', '\u0333', '\u0339',
+    '\u033a', '\u033b', '\u033c', '\u0345', '\u0335', '\u0336',
+    '\u0337', '\u0338',
+]
+
+MID_MARKS = [
+    '\u0315', '\u031b', '\u0340', '\u0341', '\u0358', '\u0334',
+    '\u0337', '\u0338',
+]
+
+
+def generate_zalgo(text, intensity=5, up=True, down=True, mid=True):
+    result = []
+    available_marks = []
+    if up:
+        available_marks.extend(UP_MARKS)
+    if down:
+        available_marks.extend(DOWN_MARKS)
+    if mid:
+        available_marks.extend(MID_MARKS)
+
+    if not available_marks:
+        return text
+
+    for char in text:
+        result.append(char)
+        if char in ' \n\r\t':
+            continue
+        num_marks = random.randint(1, intensity)
+        marks = random.sample(available_marks, min(num_marks, len(available_marks)))
+        result.extend(marks)
+
+    return ''.join(result)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Generate zalgo text for terminal use',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s "Hello World"
+  echo "Hello" | %(prog)s
+  %(prog)s -i 10 "Very glitchy"
+  %(prog)s --no-up --no-down "Mid marks only"
+        """
+    )
+    parser.add_argument('text', nargs='?', help='Text to zalgofy (or read from stdin)')
+    parser.add_argument('-i', '--intensity', type=int, default=5,
+                        help='Intensity of zalgo effects (default: 5)')
+    parser.add_argument('--no-up', action='store_true',
+                        help='Disable marks above characters')
+    parser.add_argument('--no-down', action='store_true',
+                        help='Disable marks below characters')
+    parser.add_argument('--no-mid', action='store_true',
+                        help='Disable mid marks')
+    parser.add_argument('-o', '--output', help='Output file (default: stdout)')
+
+    args = parser.parse_args()
+
+    # Get input text
+    if args.text:
+        text = args.text
+    elif not sys.stdin.isatty():
+        text = sys.stdin.read()
+    else:
+        parser.print_help()
+        sys.exit(1)
+
+    # Generate zalgo text
+    zalgo_text = generate_zalgo(
+        text,
+        intensity=args.intensity,
+        up=not args.no_up,
+        down=not args.no_down,
+        mid=not args.no_mid
+    )
+
+    if args.output:
+        with open(args.output, 'w', encoding='utf-8') as f:
+            f.write(zalgo_text)
+    else:
+        sys.stdout.write('\n' * 5)
+        sys.stdout.write(zalgo_text)
+        if not zalgo_text.endswith('\n'):
+            sys.stdout.write('\n')
+        sys.stdout.write('\n' * 5)
+
+
+if __name__ == '__main__':
+    main()
