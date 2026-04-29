@@ -1,5 +1,6 @@
+<center>
 <img width="627" height="253" alt="hax-planet" src="https://github.com/user-attachments/assets/025cbad7-a27a-4da0-84ff-36b655813bc4" />
-
+</center>
 
 # Zalgo Text Generator
 
